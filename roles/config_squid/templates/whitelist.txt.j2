@@ -1,0 +1,3 @@
+{% for domain_name in squid.whitelist_domains %}
+{{ domain_name }}{% if not loop.last %},{% endif %}
+{% endfor %}

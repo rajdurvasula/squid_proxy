@@ -1,0 +1,14 @@
+---
+# defaults file for install_squid
+supported_distros:
+- RedHat:
+    Major_Versions:
+    - 7
+    - 8
+- CentOS:
+    Major_Versions:
+    - 7
+    - 8
+squid:
+  package: squid
+  service: squid

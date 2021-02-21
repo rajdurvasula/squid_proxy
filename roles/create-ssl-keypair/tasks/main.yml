@@ -1,0 +1,18 @@
+---
+# tasks file for create-ssl-keypair
+
+- name: Include Task for RHEL7
+  include_tasks: rhel7.yml
+  when:
+    - ansible_distribution_major_version == "7"
+  tags:
+  - ssl
+  - config
+
+- name: Include Task for RHEL8
+  include_tasks: rhel8.yml
+  when:
+    - ansible_distribution_major_version == "8"
+  tags:
+  - ssl
+  - config

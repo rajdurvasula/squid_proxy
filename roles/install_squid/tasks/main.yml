@@ -1,0 +1,17 @@
+---
+# tasks file for install_squid
+- name: Include rhel
+  include_tasks: rhel.yml
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_major_version in supported_distros.RedHat.Versions
+  tags:
+  - install
+
+- name: Include centos
+  include_tasks: centos.yml
+  when: 
+  - ansible_distribution == "CentOS"
+  - ansible_distribution_major_version in supported_distros.CentOS.Versions
+  tags:
+  - install

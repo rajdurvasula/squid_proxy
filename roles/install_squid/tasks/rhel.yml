@@ -1,0 +1,20 @@
+---
+# install squid proxy on rhel
+- name: Gather package facts
+  package_facts:
+    manager: auto
+  tags:
+  - install
+
+- name: Install squid
+  yum:
+    name: "{{squid.package}}"
+    state: present
+  when:
+  - squid.package not in ansible_facts.packages
+  notify:
+  - start_squid_svc
+  tags:
+  - install
+
+

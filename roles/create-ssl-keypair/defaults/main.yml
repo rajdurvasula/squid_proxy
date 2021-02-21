@@ -1,0 +1,9 @@
+---
+# defaults file for create-ssl-keypair
+default_dir: ~/.ssh
+filename: squid
+key_size: 2048
+country: IN
+org: example.net
+org_unit: devops
+email: "raj.durvasula@gmail.com"

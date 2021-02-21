@@ -1,0 +1,97 @@
+---
+# initialize squid configuration
+- name: Include task to change squid configuration
+  include_tasks: change_squid_config.yml
+  tags:
+  - config
+
+- name: Include Role to create SSL key pair
+  include_role:
+    name: create-ssl-keypair
+  vars:
+    default_dir: "{{squid.ssl_dir}}"
+    filename: "{{squid.ssl_file}}"
+  tags:
+  - config
+
+- name: Set permissions to squid user/group
+  file:
+    path: "{{squid.ssl_dir}}"
+    state: directory
+    owner: "{{squid.user}}"
+    group: "{{squid.group}}"
+    recurse: yes
+  tags:
+  - config
+
+- name: Update iptable rules
+  include_tasks: update_iptable_rules.yml
+  tags:
+  - config
+
+
+- name: Get services facts
+  service_facts:
+  tags:
+    - config
+
+- name: Stop firewalld service
+  systemd:
+    name: "{{ firewall_service }}"
+    state: stopped
+    enabled: no
+  loop: "{{ lookup('dict', ansible_facts.services, wantlist=True) }}"
+  loop_control:
+    loop_var: service_var
+  when:
+    - firewall_service == service_var.key
+  ignore_errors: true
+  tags:
+    - config
+
+- name: Start iptables service
+  systemd:
+    name: "{{ iptables_service }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  loop: "{{ lookup('dict', ansible_facts.services, wantlist=True) }}"
+  loop_control:
+    loop_var: service_var
+  when:
+    - iptables_service == service_var.key
+  ignore_errors: true
+  tags:
+    - config
+
+- name: Check and Create squid certificate db directories
+  include_tasks: rhel7_squid_cert_db.yml
+  when:
+    - ansible_distribution_major_version == "7"
+  tags:
+    - config
+
+- name: Check and Create squid certificate db directories
+  include_tasks: rhel8_squid_cert_db.yml
+  when:
+    - ansible_distribution_major_version == "8"
+  tags:
+    - config
+
+- name: Copy Squid certificate db init script
+  template:
+    src: rhel_start_ssl_db.sh.j2
+    dest: "{{ squid.config_dir }}/start_ssl_db.sh"
+    mode: 0755
+  tags:
+    - config
+
+- name: Initialize Squid certificate db
+  shell: "{{ squid.config_dir }}/start_ssl_db.sh"
+  args:
+    executable: /bin/bash
+  notify:
+    - restart_squid_svc
+  tags:
+    - config
+ 

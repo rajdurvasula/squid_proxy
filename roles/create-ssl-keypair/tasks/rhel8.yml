@@ -1,0 +1,97 @@
+---
+# ssl key pair generation for rhel8
+- name: Create "{{ default_dir }}"
+  file:
+    path: "{{ default_dir }}"
+    state: directory
+    recurse: yes
+    force: yes
+  tags:
+    - ssl
+    - config
+
+- name: Generate Private Key
+  openssl_privatekey:
+    path: "{{ default_dir }}/{{ filename }}.key"
+    size: "{{ key_size }}"
+  tags:
+    - ssl
+    - config
+
+- name: Generate CSR
+  openssl_csr:
+    path: "{{ default_dir }}/{{ filename }}.csr"
+    privatekey_path: "{{ default_dir }}/{{ filename }}.key"
+    country_name: "{{ country }}"
+    organization_name: "{{ org }}"
+    organizational_unit_name: "{{ org_unit }}"
+    email_address: "{{ email }}"
+    common_name: "{{ ansible_fqdn }}"
+  tags:
+    - ssl
+    - config
+
+- name: Generate Certificate
+  openssl_certificate:
+    path: "{{ default_dir }}/{{ filename }}.crt"
+    privatekey_path: "{{ default_dir }}/{{ filename }}.key"
+    csr_path: "{{ default_dir }}/{{ filename }}.csr"
+    provider: selfsigned
+  tags:
+    - ssl
+    - config
+
+- name: Read Private Key
+  slurp:
+    src: "{{ default_dir }}/{{ filename }}.key"
+  register: priv_key_content
+  tags:
+    - ssl
+    - config
+
+- name: Read Certificate
+  slurp:
+    src: "{{ default_dir }}/{{ filename }}.crt"
+  register: cert_content
+  tags:
+    - ssl
+    - config
+
+- name: Check pem file
+  stat:
+    path: "{{ default_dir }}/{{ filename }}.pem"
+  register: pem_status
+  tags:
+    - ssl
+    - config
+
+- name: Delete pem file
+  file:
+    path: "{{ default_dir }}/{{ filename }}.pem"
+    state: absent
+    force: yes
+  tags:
+    - ssl
+    - config
+
+- name: Create pem file
+  file:
+    path: "{{ default_dir }}/{{ filename }}.pem"
+    state: touch
+    force: yes
+  tags:
+    - ssl
+    - config
+
+- name: Merge Private, Certificate to single file
+  lineinfile:
+    path: "{{ default_dir }}/{{ filename }}.pem"
+    line: "{{ item }}"
+    insertafter: EOF
+  loop:
+    - "{{ priv_key_content['content'] | b64decode }}"
+    - "{{ cert_content['content'] | b64decode }}"
+  tags:
+    - ssl
+    - config
+

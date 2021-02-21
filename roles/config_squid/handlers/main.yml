@@ -1,0 +1,15 @@
+---
+# handlers file for config_squid
+- name: restart_squid_svc
+  systemd:
+    name: "{{squid.service}}"
+    state: restarted
+  tags:
+  - config
+
+- name: restart_iptables
+  systemd:
+    name: "{{iptables_service}}"
+    state: restarted
+  tags:
+  - config

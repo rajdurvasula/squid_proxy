@@ -1,0 +1,33 @@
+---
+# copy ssl artifacts
+- name: Remove existing SSL pem file
+  file:
+    path: "{{ squid.ssl_dir }}/{{ squid.ssl_file }}.pem"
+    state: absent
+    force: yes
+  tags:
+    - config
+
+- name: Copy provided SSL pem file
+  copy:
+    src: "{{ squid.ssl_file }}.pem"
+    dest: "{{ squid.ssl_dir }}/"
+    owner: "{{ squid.user }}"
+    group: "{{ squid.group }}"
+  when:
+    - squid.copy_ssl|bool
+  notify:
+    - restart_squid_svc
+  tags:
+    - config
+
+- name: Set permissions to 'squid' user
+  file:
+    path: "{{ squid.ssl_dir }}"
+    state: directory
+    owner: "{{ squid.user }}"
+    group: "{{ squid.group }}"
+    recurse: yes
+  tags:
+    - config
+

@@ -1,0 +1,54 @@
+---
+# Update iptable rules
+- name: Check iptables file exists
+  stat:
+    path: /etc/sysconfig/iptables
+  register: iptables_status
+  tags:
+    - config
+
+- name: Backup iptables
+  copy:
+    src: /etc/sysconfig/iptables
+    dest: "/etc/sysconfig/iptables.{{ ansible_date_time.iso8601_basic_short }}"
+    remote_src: yes
+  when:
+    - iptables_status.stat.exists
+  tags:
+    - config
+
+- name: Forward "{{ http_port }}" to "{{ squid.http_port }}"
+  iptables:
+    table: nat
+    chain: PREROUTING
+    in_interface: "{{ ansible_default_ipv4.interface }}"
+    protocol: tcp
+    match: tcp
+    destination_port: "{{ http_port }}"
+    jump: REDIRECT
+    to_ports: "{{ squid.http_port }}"
+    comment: "Redirect http traffic to {{ squid.http_port }}"
+  tags:
+    - config
+
+- name: Forward "{{ https_port }}" to "{{ squid.https_port }}"
+  iptables:
+    table: nat
+    chain: PREROUTING
+    in_interface: "{{ ansible_default_ipv4.interface }}"
+    protocol: tcp
+    match: tcp
+    destination_port: "{{ https_port }}"
+    jump: REDIRECT
+    to_ports: "{{ squid.https_port }}"
+    comment: "Redirect https traffic to {{ squid.https_port }}"
+  tags:
+    - config
+
+- name: Save iptables
+  command: service iptables save
+  notify:
+    - restart_iptables
+  tags:
+    - config
+

@@ -1,0 +1,44 @@
+---
+# defaults file for config_squid
+squid:
+  service: squid
+  user: squid
+  group: squid
+  config_dir: /etc/squid
+  config_file: squid.conf
+  ssl_dir: ssl
+  ssl_file: squid 
+  copy_ssl: false # use provided ssl
+  config_change: false # change squid configuration
+  http_port: 3128
+  https_port: 3130
+  whitelist_file: whitelist.txt
+  whitelist_domains:
+  - https://cdn.redhat.com
+  - https://mirror.centos.org
+  allowed_subnets:
+  - 10.0.1.0/24
+  
+# outbound ports
+http_port: 80
+https_port: 443
+
+# squid cert gen
+child_count: 10
+squid_cert_gen_cmd_args: -c -s
+rhel7:
+  squid_cert_gen_cmd: ssl_crtd
+  squid_cert_gen_dir: /usr/lib64/squid
+  squid_cert_db_parent_dir: /var/spool/squid
+  squid_cert_db_dir: /var/spool/squid/ssl_db
+  squid_cert_db_args: -M 8MB
+rhel8:
+  squid_cert_gen_cmd: security_file_certgen
+  squid_cert_gen_dir: /usr/lib64/squid
+  squid_cert_db_parent_dir: /var/spool/squid
+  squid_cert_db_dir: /var/spool/squid/ssl_db
+  squid_cert_db_args: -M 8MB
+
+firewall_service: firewalld.service
+iptables_service: iptables.service
+

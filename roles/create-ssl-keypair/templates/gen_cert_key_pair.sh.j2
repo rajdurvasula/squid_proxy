@@ -1,0 +1,2 @@
+#!/bin/bash
+openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -extensions v3_ca -keyout {{ filename }}.pem -out {{ filename }}.pem -subj "/emailAddress={{ email }}/CN={{ ansible_fqdn }}/O={{ org }}/OU={{ org_unit }}/C={{ country }}"

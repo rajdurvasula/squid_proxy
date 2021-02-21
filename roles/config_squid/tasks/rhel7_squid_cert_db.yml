@@ -1,0 +1,21 @@
+---
+# setup squid ssl db
+- name: Check and Create "{{ rhel7.squid_cert_db_parent_dir }}"
+  block:
+    - name: Check "{{ rhel7.squid_cert_db_parent_dir }}" exists
+      stat:
+        path: "{{ rhel7.squid_cert_db_parent_dir }}"
+      register: cert_db_parent_dir_status
+
+    - name: Create "{{ rhel7.squid_cert_db_parent_dir }}"
+      file:
+        path: "{{ rhel7.squid_cert_db_parent_dir }}"
+        state: directory
+        recurse: yes
+        owner: "{{ squid.user }}"
+        group: "{{ squid.group }}"
+      when:
+        - not cert_db_parent_dir_status.stat.exists
+  tags:
+    - config
+

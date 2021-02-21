@@ -1,0 +1,12 @@
+---
+# handlers file for install_squid
+- name: start_squid_svc
+  systemd:
+    name: "{{squid.service}}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when:
+  - ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+  tags:
+  - install

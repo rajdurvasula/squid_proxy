@@ -1,0 +1,13 @@
+---
+# Setup squid proxy server
+
+- name: Playbook to setup squid proxy server
+  hosts: all
+  
+  roles:
+  - role: install_squid
+    when:
+    - ansible_distribution in supported_distros.Name
+    tags:
+    - install
+    - never

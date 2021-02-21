@@ -1,0 +1,42 @@
+---
+# change squid configuration
+- name: Check "{{ squid.config_file }}"
+  stat:
+    path: "{{ squid.config_dir }}/{{ squid.config_file }}"
+  register: config_file_status
+  tags:
+    - config
+
+- name: Copy customized squid configuration file (RHEL7)
+  template:
+    src: rhel7_squid.conf.j2
+    dest: "{{ squid.config_dir }}/{{ squid.config_file }}"
+    backup: yes
+  notify:
+    - restart_squid_svc
+  when:
+    - ansible_distribution_major_version == "7"
+  tags:
+    - config
+
+- name: Copy customized squid configuration file (RHEL8)
+  template:
+    src: rhel8_squid.conf.j2
+    dest: "{{ squid.config_dir }}/{{ squid.config_file }}"
+    backup: yes
+  notify:
+    - restart_squid_svc
+  when:
+    - ansible_distribution_major_version == "8"
+  tags:
+    - config
+
+- name: Copy whitelist file
+  template:
+    src: whitelist.txt.j2
+    dest: "{{ squid.config_dir }}/{{ squid.whitelist_file }}"
+    owner: "{{ squid.user }}"
+    group: "{{ squid.group }}"
+  tags:
+    - config
+

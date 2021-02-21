@@ -1,0 +1,43 @@
+---
+# ssl key pair generation for rhel7
+- name: Create "{{ default_dir }}"
+  file:
+    path: "{{ default_dir }}"
+    state: directory
+    recurse: yes
+    force: yes
+  tags:
+    - ssl
+    - config
+
+- name: Copy script to generate self-signed cert key pair
+  template:
+    src: gen_cert_key_pair.sh.j2
+    dest: /root/gen_cert_key_pair.sh
+    mode: 0755
+  become: yes
+  tags:
+    - ssl
+    - config
+
+- name: Generate self-signed cert key pair
+  shell:
+    /root/gen_cert_key_pair.sh
+  args:
+    executable: /bin/bash
+    chdir: "{{ default_dir }}"
+  become: yes
+  tags:
+    - ssl
+    - config
+
+- name: Delete self-signed cert key pair generation script
+  file:
+    path: /root/gen_cert_key_pair.sh
+    state: absent
+    force: yes
+  become: yes
+  tags:
+    - ssl
+    - config
+

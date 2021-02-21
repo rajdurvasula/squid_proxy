@@ -1,0 +1,46 @@
+# rule allowing access from local networks
+acl localnet src fc00::/7       # RFC 4193 local private network range
+acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
+acl localnet src 127.0.0.1
+acl localnet src {{ ansible_fqdn }}
+
+# Handle acl for subnets
+{% for subnet in allowed_subnets %}
+acl subnet{{ loop.index }} src {{ squid.allowed_subnets }}
+{% endfor %}
+
+acl SSL_ports port {{ https_port }}
+acl Safe_ports port {{ https_port }} # https
+acl CONNECT method CONNECT
+
+# Deny requests to certain unsafe ports
+http_access deny !Safe_ports
+
+# Deny CONNECT to other than secure SSL ports
+http_access deny CONNECT !SSL_ports
+
+# Only allow cachemgr access from localhost
+http_access allow localhost manager
+http_access deny manager
+
+# whitelist
+acl allowed_https_sites dstdomain {% for domain_name in squid.whitelist_domains %}{{ domain_name }}{% if not loop.last %} {% endif %}{% endfor %}
+
+# Allow specific sites
+http_access allow CONNECT allowed_https_sites
+
+# Deny other sites
+http_access deny CONNECT !allowed_https_sites
+
+# Handle HTTPS requests
+http_port {{ squid.http_port }} ssl-bump cert={{ squid.ssl_dir }}/{{ squid.ssl_file }}.pem generate-host-certificates=on dynamic_cert_mem_cache_size={{ rhel7.squid_cert_db_args.split(' ') | last }}
+https_port {{ squid.https_port }} intercept ssl-bump cert={{ squid.ssl_dir }}/{{ squid.ssl_file }}.pem
+sslcrtd_program {{ rhel7.squid_cert_gen_dir }}/{{ rhel7.squid_cert_gen_cmd }} -s {{ rhel7.squid_cert_db_dir }} {{ rhel7.squid_cert_db_args }}
+sslcrtd_children {{ child_count }} 
+acl step1 at_step SslBump1
+ssl_bump peek step1
+#ssl_bump bump all
+ssl_bump bump allowed_https_sites
+#ssl_bump splice all
+ssl_bump splice allowed_https_sites
+

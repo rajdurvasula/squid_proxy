@@ -1,0 +1,31 @@
+---
+# configure squid on rhel
+- name: name: Check "{{ squid.ssl_dir }}" exists
+  stat:
+    path: "{{squid.ssl_dir}}"
+  register: squid_ssl_dir_status
+  tags:
+  - config
+
+- name: Include task to init squid ssl store
+  include_tasks: init_config.yml
+  when:
+  - not squid_ssl_dir_status.stat.exists
+  tags:
+  - config
+
+- name: Include Task to copy SSL pem file
+  include_tasks: copy_ssl_file.yml
+  when:
+    - squid_ssl_dir_status.stat.exists
+    - squid.copy_ssl|bool
+  tags:
+    - config
+
+- name: Include Task to change squid.conf file
+  include_tasks: change_config.yml
+  when:
+    - squid.config_change|bool
+  tags:
+    - config
+

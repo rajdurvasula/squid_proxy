@@ -1,0 +1,8 @@
+#!/bin/bash
+{% if ansible_distribution_major_version == "7" %}
+{{ rhel7.squid_cert_gen_dir }}/{{ rhel7.squid_cert_gen_cmd }} {{ squid_cert_gen_cmd_args }} {{ rhel7.squid_cert_db_dir }} {{ rhel7.squid_cert_db_args }}
+chown -R {{ squid.user }}:{{ squid.group }} {{ rhel7.squid_cert_db_dir }}
+{% elif ansible_distribution_major_version == "8" %}
+{{ rhel8.squid_cert_gen_dir }}/{{ rhel8.squid_cert_gen_cmd }} {{ squid_cert_gen_cmd_args }} {{ rhel8.squid_cert_db_dir }} {{ rhel8.squid_cert_db_args }}
+chown -R {{ squid.user }}:{{ squid.group }} {{ rhel8.squid_cert_db_dir }}
+{% endif %}
